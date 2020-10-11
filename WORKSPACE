@@ -52,7 +52,7 @@ http_archive(
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 maven_install(
     artifacts = [
-        "org.tmatesoft.svnkit:svnkit:1.10.1"
+        "org.tmatesoft.svnkit:svnkit:1.3.1"
     ],
     fetch_sources = True,
     maven_install_json = "//:maven_install.json",

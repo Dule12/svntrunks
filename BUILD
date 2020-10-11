@@ -13,8 +13,12 @@ graal_binary(
     name = "svntrunks-native",
     deps = [":svntrunks"],
     main_class = "dule12.Main",
+    initialize_at_build_time=["dule12.Main"],
+    reflection_configuration = "reflection.cfg",
     graal_extra_args = [
-        "--report-unsupported-elements-at-runtime"
+        "--report-unsupported-elements-at-runtime",
+        "-H:EnableURLProtocols=http",
+        "-H:+AllowIncompleteClasspath"
     ]
 )
 

@@ -68,7 +68,7 @@ object Main {
 
     updateClient.doCheckout(
       SVNURL.parseURIDecoded(url + "/" + repoPath),
-      new File(destRootPath + (if (repoPath == "") "/" else "") + repoPath),
+      new File(destRootPath + (if (repoPath != "") "/" else "") + repoPath),
       SVNRevision.UNDEFINED,
       SVNRevision.HEAD,
       SVNDepth.FILES,
@@ -81,7 +81,7 @@ object Main {
       null,
       null.asInstanceOf[java.util.Collection[_]]
     )
-    for (entry <- entries.asInstanceOf[Iterable[SVNDirEntry]]) {
+    for (entry <- entries.toIterable.asInstanceOf[Iterable[SVNDirEntry]]) {
       if (
         !entry.getName().equalsIgnoreCase("branches") && !entry
           .getName()
@@ -95,7 +95,7 @@ object Main {
             destRootPath,
             if (repoPath == "") entry.getName()
             else repoPath + "/" + entry.getName()
-          );
+          )
         }
       }
     }
