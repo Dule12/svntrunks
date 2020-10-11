@@ -12,7 +12,10 @@ scala_library(
 graal_binary(
     name = "svntrunks-native",
     deps = [":svntrunks"],
-    main_class = "dule12.Main"
+    main_class = "dule12.Main",
+    graal_extra_args = [
+        "--report-unsupported-elements-at-runtime"
+    ]
 )
 
 scala_binary(

@@ -5,16 +5,99 @@ import org.tmatesoft.svn.core.io._
 import org.tmatesoft.svn.core.wc._
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import java.io.File
+import scala.collection.JavaConversions._
 
 object Main {
   def main(args: Array[String]): Unit = {
     println("SVNTrunks starting!")
-    if (args.length == 4) {
-      val url = args(0)
-      val username = args(1)
-      val password = args(2)
-      val checkoutRoot = args(3)
-    }
+    val agg = args.length == 3
+    val url = if (agg) args(0) else readLine("SVN url for checkout:")
+    val checkoutRoot =
+      if (agg) args(1)
+      else {
+        Some(readLine("Checkout path(default ./):"))
+          .filter(_ != "")
+          .getOrElse("./")
+      }
+    val username = if (agg) args(2) else readLine("Username:")
+    println("Password:")
+    val standardIn = System.console()
+    val password = new String(standardIn.readPassword())
+
+    println("Checkout url:" + url)
+    println("Checkout destination:" + checkoutRoot)
+
     DAVRepositoryFactory.setup()
+
+    val repository = SVNRepositoryFactory.create(SVNURL.parseURIDecoded(url))
+    repository.setAuthenticationManager(
+      SVNWCUtil.createDefaultAuthenticationManager(username, password)
+    )
+    val clientManager =
+      SVNClientManager.newInstance(null, repository.getAuthenticationManager())
+    val updateClient = clientManager.getUpdateClient()
+
+    updateClient.setIgnoreExternals(false)
+
+    val nodeKind = repository.checkPath("", -1)
+
+    if (nodeKind == SVNNodeKind.NONE) {
+      println("No entry at requested url:'" + url + "'.")
+      System.exit(1)
+    } else if (nodeKind == SVNNodeKind.FILE) {
+      println(
+        "Requested url:'" + url + "' is a file while a directory was expected."
+      )
+      System.exit(1)
+    }
+
+    traverse(updateClient, repository, url, checkoutRoot, "")
+    println("Repository latest revision:" + repository.getLatestRevision())
+
+  }
+
+  def traverse(
+      updateClient: SVNUpdateClient,
+      repository: SVNRepository,
+      url: String,
+      destRootPath: String,
+      repoPath: String
+  ): Unit = {
+
+    println(repoPath);
+
+    updateClient.doCheckout(
+      SVNURL.parseURIDecoded(url + "/" + repoPath),
+      new File(destRootPath + (if (repoPath == "") "/" else "") + repoPath),
+      SVNRevision.UNDEFINED,
+      SVNRevision.HEAD,
+      SVNDepth.FILES,
+      false
+    )
+
+    val entries = repository.getDir(
+      repoPath,
+      -1,
+      null,
+      null.asInstanceOf[java.util.Collection[_]]
+    )
+    for (entry <- entries.asInstanceOf[Iterable[SVNDirEntry]]) {
+      if (
+        !entry.getName().equalsIgnoreCase("branches") && !entry
+          .getName()
+          .equalsIgnoreCase("tags")
+      ) {
+        if (entry.getKind() == SVNNodeKind.DIR) {
+          traverse(
+            updateClient,
+            repository,
+            url,
+            destRootPath,
+            if (repoPath == "") entry.getName()
+            else repoPath + "/" + entry.getName()
+          );
+        }
+      }
+    }
   }
 }
