@@ -7,8 +7,11 @@ import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import java.io.File
 import scala.collection.JavaConversions._
 
-
-
+/**
+  * Run by passing checkout url, local destination, username.
+  * eg. ./svntrunks-native-bin http://svn.example.net/dir1/dir2/ ./ username
+  * or just ./svntrunks-native-bin and follow instructions.\
+  */
 object Main {
   def main(args: Array[String]): Unit = {
     println("SVNTrunks starting!")
@@ -21,13 +24,11 @@ object Main {
           .filter(_ != "")
           .getOrElse("./")
       }
-      
-    println("Username:")  
+    println("Username:")
     val username = if (agg) args(2) else readLine()
-    
     println("Password:")
     val standardIn = System.console()
-    val password = new String(standardIn.readPassword())
+    val password   = new String(standardIn.readPassword())
 
     println("Checkout url:" + url)
     println("Checkout destination:" + checkoutRoot)
@@ -38,9 +39,8 @@ object Main {
     repository.setAuthenticationManager(
       SVNWCUtil.createDefaultAuthenticationManager(username, password)
     )
-    val clientManager =
-      SVNClientManager.newInstance(null, repository.getAuthenticationManager())
-    val updateClient = clientManager.getUpdateClient()
+    val clientManager = SVNClientManager.newInstance(null, repository.getAuthenticationManager())
+    val updateClient  = clientManager.getUpdateClient()
 
     updateClient.setIgnoreExternals(false)
 
@@ -80,13 +80,7 @@ object Main {
       false
     )
 
-    val entries = repository.getDir(
-      repoPath,
-      -1,
-      null,
-      null.asInstanceOf[java.util.Collection[_]]
-    )
-    
+    val entries = repository.getDir(repoPath, -1, null, null.asInstanceOf[java.util.Collection[_]])
     for (entry <- entries.toIterable.asInstanceOf[Iterable[SVNDirEntry]]) {
       if (
         !entry.getName().equalsIgnoreCase("branches") && !entry
