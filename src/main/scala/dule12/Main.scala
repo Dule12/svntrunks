@@ -7,6 +7,8 @@ import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import java.io.File
 import scala.collection.JavaConversions._
 
+
+
 object Main {
   def main(args: Array[String]): Unit = {
     println("SVNTrunks starting!")
@@ -19,7 +21,10 @@ object Main {
           .filter(_ != "")
           .getOrElse("./")
       }
-    val username = if (agg) args(2) else readLine("Username:")
+      
+    println("Username:")  
+    val username = if (agg) args(2) else readLine()
+    
     println("Password:")
     val standardIn = System.console()
     val password = new String(standardIn.readPassword())
@@ -81,6 +86,7 @@ object Main {
       null,
       null.asInstanceOf[java.util.Collection[_]]
     )
+    
     for (entry <- entries.toIterable.asInstanceOf[Iterable[SVNDirEntry]]) {
       if (
         !entry.getName().equalsIgnoreCase("branches") && !entry
